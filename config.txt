@@ -1,0 +1,3 @@
+account = ablue
+password = mango,111
+root_id = 001
