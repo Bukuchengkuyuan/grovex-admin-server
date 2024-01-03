@@ -65,7 +65,7 @@ public class JWTConfig {
                     Claims claims = JwtUtil.getTokenBody(token);
                     Long expire = claims.getExpiration().getTime();
                     Long currentTime = new Date().getTime();
-                    if (currentTime <= expire || redisUtil.hasKey(appName + claims.get("data"))) {
+                    if (currentTime <= expire || redisUtil.hasKey(appName + GsonUtil.fromJson(String.valueOf(claims.get("data")), JwtVo.class).getId())) {
                         // 如果 token 未过期或 Redis 中存在 token，则继续
                         if (currentTime > expire) {
                             // Token 过期但 Redis 中存在，刷新 token

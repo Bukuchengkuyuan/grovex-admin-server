@@ -94,7 +94,7 @@ public class JwtUtil {
         if (StringUtils.isEmpty(jwtToken)) {
             return null;
         }
-        Jws<Claims> claimsJws = Jwts.parser().setSigningKey(APP_SECRET).parseClaimsJws(jwtToken);
+        Jws<Claims> claimsJws = Jwts.parser().setSigningKey(APP_SECRET).setAllowedClockSkewSeconds(30).parseClaimsJws(jwtToken);
         return claimsJws.getBody();
     }
 }

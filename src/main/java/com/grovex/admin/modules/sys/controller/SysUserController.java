@@ -152,8 +152,11 @@ public class SysUserController {
     @ApiOperation(value = "使用用户名、密码登录")
     @PostMapping("/login/namePwdLogin")
     public Result namePwdLogin(@Validated({LoginGroup.class}) @RequestBody NamePwdLoginVo namePwdLoginVo) {
-        String token = JwtUtil.getJwtToken(namePwdLoginVo.getUserName()); // 假
-        redisUtil.set(appName + namePwdLoginVo.getUserName(), token, 60);
+        JwtVo jwtVo = new JwtVo();
+        jwtVo.setId(1L);
+        jwtVo.setName(namePwdLoginVo.getUserName());
+        String token = JwtUtil.getJwtToken(jwtVo); // 假
+        redisUtil.set(appName + 1, token, 60);
         if (StringUtils.isNotEmpty(token)) {
             return Result.ok().message("登录成功").data("token", token);
         }
