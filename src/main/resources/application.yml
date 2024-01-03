@@ -2,7 +2,12 @@
 server:
   port: 8000
 # spring.quartz.job-store-type=none
+
+jwt:
+  expire: 30000
+
 spring:
+  appname: grovex
   # 配置数据源
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver

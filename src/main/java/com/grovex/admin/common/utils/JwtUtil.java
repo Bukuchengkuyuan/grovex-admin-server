@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
@@ -15,8 +16,9 @@ import java.util.Date;
  */
 public class JwtUtil {
 
+
     // 设置默认过期时间（15 分钟）
-    private static final long DEFAULT_EXPIRE = 1000L * 60 * 60 * 3;
+    private static final long DEFAULT_EXPIRE = 1000L * 30 ;
     // 设置 jwt 生成 secret（随意指定）
     private static final String APP_SECRET = "ukc8BDbRigUDaY6pZFfWus2jZWLPHO";
 
@@ -60,7 +62,10 @@ public class JwtUtil {
         }
         try {
             // 获取 token 数据
-            Jws<Claims> claimsJws = Jwts.parser().setSigningKey(APP_SECRET).parseClaimsJws(jwtToken);
+            Jws<Claims> claimsJws = Jwts.parser()
+                    .setSigningKey(APP_SECRET)
+                    .setAllowedClockSkewSeconds(30)
+                    .parseClaimsJws(jwtToken);
             // 判断是否过期
             return claimsJws.getBody().getExpiration().after(new Date());
         } catch (Exception e) {
@@ -79,7 +84,7 @@ public class JwtUtil {
      * 根据 token 获取数据
      */
     public static Claims getTokenBody(HttpServletRequest request) {
-        return getTokenBody(request.getHeader("Authorization"));
+        return getTokenBody(request.getHeader("Authorization").substring(7));
     }
 
     /**

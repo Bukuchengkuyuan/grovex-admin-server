@@ -11,16 +11,21 @@ import com.grovex.admin.modules.sys.entity.SysUserRole;
 import com.grovex.admin.modules.sys.service.SysRoleService;
 import com.grovex.admin.modules.sys.service.SysUserRoleService;
 import com.grovex.admin.modules.sys.service.SysUserService;
-import com.grovex.admin.modules.sys.vo.*;
+import com.grovex.admin.modules.sys.vo.JwtVo;
+import com.grovex.admin.modules.sys.vo.NamePwdLoginVo;
+import com.grovex.admin.modules.sys.vo.PhonePwdLoginVo;
+import com.grovex.admin.modules.sys.vo.RegisterVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 
 /**
@@ -35,6 +40,10 @@ import java.util.Date;
 @RequestMapping("/sys/sys-user")
 @Api(tags = "用户登录、注册操作")
 public class SysUserController {
+
+
+    @Value("${spring.appname}")
+    private String appName;
 
     /**
      * 用于操作 sys_user 表
@@ -91,7 +100,7 @@ public class SysUserController {
         jwtVo.setName(sysUser.getName());
         jwtVo.setRoleType(getUserRole(sysUser));
         jwtVo.setTime(new Date().getTime());
-        // 获取 jwt 数据，设置过期时间为 3天
+        // 获取 jwt 数据，设置过期时间为 3h
         String jwt = JwtUtil.getJwtToken(jwtVo, 1000L * 60 * 60 * 3);
         // 判断用户是否重复登录（code 有值则重复登录，需要保留最新的登录者，剔除前一个登录者）
         String code = redisUtil.get(String.valueOf(sysUser.getId()));
@@ -143,9 +152,10 @@ public class SysUserController {
     @ApiOperation(value = "使用用户名、密码登录")
     @PostMapping("/login/namePwdLogin")
     public Result namePwdLogin(@Validated({LoginGroup.class}) @RequestBody NamePwdLoginVo namePwdLoginVo) {
-        String jwt = pwdLogin(namePwdLoginVo.getUserName(), namePwdLoginVo.getPassword(), USER_NAME_STATUS);
-        if (StringUtils.isNotEmpty(jwt)) {
-            return Result.ok().message("登录成功").data("token", jwt).data("refreshToken", jwt);
+        String token = JwtUtil.getJwtToken(namePwdLoginVo.getUserName()); // 假
+        redisUtil.set(appName + namePwdLoginVo.getUserName(), token, 60);
+        if (StringUtils.isNotEmpty(token)) {
+            return Result.ok().message("登录成功").data("token", token);
         }
         return Result.error().message("登录失败").code(HttpStatus.SC_UNAUTHORIZED);
     }
@@ -207,13 +217,10 @@ public class SysUserController {
 
     @ApiOperation(value = "获取用户信息")
     @GetMapping("/getUserInfo")
-    public Result getUserInfo(@SessionAttribute("jwt") JwtVo jwtVo) {
+    public Result getUserInfo(HttpServletRequest request) {
 
         return Result.ok()
-                .data("userId",jwtVo.getId())
-                .data("userRole",jwtVo.getRoleType())
-                .data("userName",jwtVo.getName())
-                ;
+                .data("userId",JwtUtil.getTokenBody(request));
     }
 }
 
