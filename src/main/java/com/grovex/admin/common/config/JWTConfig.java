@@ -26,6 +26,7 @@ import java.util.Date;
 
 /**
  * JWT 拦截器配置
+ *
  * @auther: ablue
  * @date: 2024/01/03
  */
@@ -55,6 +56,11 @@ public class JWTConfig {
         };
     }
 
+    /**
+     * JWT 拦截器
+     * @auther: ablue
+     * @date: 2024/01/04
+     */
     class JWTInterceptor extends HandlerInterceptorAdapter {
         @Override
         public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -69,8 +75,7 @@ public class JWTConfig {
                         // 如果 token 未过期或 Redis 中存在 token，则继续
                         if (currentTime > expire) {
                             // Token 过期但 Redis 中存在，刷新 token
-                            token = refreshToken(claims, response);
-                            request.setAttribute("Authorization", token);
+                            refreshToken(claims, response);
                         }
                         return true;
                     }
@@ -83,6 +88,11 @@ public class JWTConfig {
         }
     }
 
+    /**
+     * 返回 json 数据
+     * @param response
+     * @throws IOException
+     */
     public void returnJsonData(HttpServletResponse response) throws IOException {
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json; charset=utf-8");
@@ -90,11 +100,20 @@ public class JWTConfig {
         pw.print(GsonUtil.toJson(Result.error().message("token 失效或过期").code(HttpStatus.SC_UNAUTHORIZED)));
     }
 
-    public String refreshToken(Claims claims, HttpServletResponse response) {
-        JwtVo jwt = GsonUtil.fromJson(String.valueOf(claims.get("data")), JwtVo.class);
-        String newToken = JwtUtil.getJwtToken(jwt, EXPIRE);
-        redisUtil.set(appName + jwt.getId(), newToken, EXPIRE / 1000 * 2);
-        response.setHeader("Authorization", "Bearer " + newToken);
-        return newToken;
+    /**
+     * 刷新 token
+     * @param claims token 中的数据
+     * @param response 响应
+     */
+    public void refreshToken(Claims claims, HttpServletResponse response) {
+        long redisExpire = redisUtil.getExpire(appName + GsonUtil.fromJson(String.valueOf(claims.get("data")), JwtVo.class).getId());
+
+        // 30秒内刷新过 token，不再刷新
+        if (redisExpire > (new Date().getTime() - EXPIRE) / 1000 ) {
+            JwtVo jwt = GsonUtil.fromJson(String.valueOf(claims.get("data")), JwtVo.class);
+            String newToken = JwtUtil.getJwtToken(jwt, EXPIRE);
+            redisUtil.set(appName + jwt.getId(), newToken, EXPIRE / 1000 * 2);
+            response.setHeader("tk", newToken);
+        }
     }
 }

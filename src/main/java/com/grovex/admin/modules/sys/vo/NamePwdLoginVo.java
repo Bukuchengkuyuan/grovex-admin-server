@@ -12,7 +12,7 @@ import javax.validation.constraints.NotEmpty;
 @Data
 public class NamePwdLoginVo {
     @NotEmpty(message = "{sys.user.name.notEmpty}", groups = {LoginGroup.class})
-    private String userName;
+    private String username;
     @NotEmpty(message = "{sys.user.password.notEmpty}", groups = {LoginGroup.class})
     private String password;
 }

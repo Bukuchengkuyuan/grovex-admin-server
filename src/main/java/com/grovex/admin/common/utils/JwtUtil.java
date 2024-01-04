@@ -53,32 +53,6 @@ public class JwtUtil {
         return JwtToken;
     }
 
-    /**
-     * 判断token是否存在与有效，true 表示未过期，false 表示过期或不存在
-     */
-    public static boolean checkToken(String jwtToken) {
-        if (StringUtils.isEmpty(jwtToken)) {
-            return false;
-        }
-        try {
-            // 获取 token 数据
-            Jws<Claims> claimsJws = Jwts.parser()
-                    .setSigningKey(APP_SECRET)
-                    .setAllowedClockSkewSeconds(30)
-                    .parseClaimsJws(jwtToken);
-            // 判断是否过期
-            return claimsJws.getBody().getExpiration().after(new Date());
-        } catch (Exception e) {
-            throw new GlobalException("会话已过期~", 406);
-        }
-    }
-
-    /**
-     * 判断token是否存在与有效
-     */
-    public static boolean checkToken(HttpServletRequest request) {
-        return checkToken(request.getHeader("Authorization"));
-    }
 
     /**
      * 根据 token 获取数据

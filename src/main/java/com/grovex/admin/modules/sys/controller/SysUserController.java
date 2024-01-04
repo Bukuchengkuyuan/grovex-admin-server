@@ -154,7 +154,7 @@ public class SysUserController {
     public Result namePwdLogin(@Validated({LoginGroup.class}) @RequestBody NamePwdLoginVo namePwdLoginVo) {
         JwtVo jwtVo = new JwtVo();
         jwtVo.setId(1L);
-        jwtVo.setName(namePwdLoginVo.getUserName());
+        jwtVo.setName(namePwdLoginVo.getUsername());
         String token = JwtUtil.getJwtToken(jwtVo); // 假
         redisUtil.set(appName + 1, token, 60);
         if (StringUtils.isNotEmpty(token)) {
